@@ -14,18 +14,34 @@ function doPost(e) {
       });
     }
 
-    const sheet = SpreadsheetApp
-      .getActiveSpreadsheet()
-      .getSheetByName("Entries");
+    // Validate secret without changing anything
+    if (data.action === "validate") {
+      return jsonResponse({
+        success: true
+      });
+    }
 
-    sheet.appendRow([
-      new Date(),
-      data.name
-    ]);
+    // Add a row
+    if (data.action === "addRecord") {
+
+      const sheet = SpreadsheetApp
+        .getActiveSpreadsheet()
+        .getSheetByName("Entries");
+
+      sheet.appendRow([
+        new Date(),
+        data.name
+      ]);
+
+      return jsonResponse({
+        success: true,
+        message: "Record added"
+      });
+    }
 
     return jsonResponse({
-      success: true,
-      message: "Record added"
+      success: false,
+      error: "Unknown action"
     });
 
   } catch (err) {

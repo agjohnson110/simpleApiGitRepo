@@ -7,21 +7,105 @@
 
 <h1>Google Sheet Test</h1>
 
+<button onclick="logout()">Logout</button>
+
+<br><br>
+
 <input id="name" placeholder="Enter name">
 <button onclick="submitName()">Save</button>
-<button onclick="loadRecords()">
-  View Records
-</button>
+<button onclick="loadRecords()">View Records</button>
 
-<p id="result"></p>
+<pre id="result"></pre>
 
 <script>
 
 const API_URL =
   "https://script.google.com/macros/s/AKfycbwh9zJAkSCTSpUkoniyEb11ox9352YKHrpwnFvvfDuHAxaFsggyr6D8FSFOa5mJfKEq/exec";
 
-const SECRET =
-  "my-secret-key";
+let secret = null;
+
+window.addEventListener("load", initialize);
+
+async function initialize() {
+
+  let storedSecret =
+    localStorage.getItem("apiSecret");
+
+  if (!storedSecret) {
+    await requestSecret();
+    return;
+  }
+
+  const valid =
+    await validateSecret(storedSecret);
+
+  if (valid) {
+    secret = storedSecret;
+    showMessage("Authenticated");
+  } else {
+    localStorage.removeItem("apiSecret");
+    await requestSecret();
+  }
+}
+
+async function requestSecret() {
+
+  while (true) {
+
+    const entered =
+      prompt("Enter access key");
+
+    if (!entered) {
+      continue;
+    }
+
+    const valid =
+      await validateSecret(entered);
+
+    if (valid) {
+
+      localStorage.setItem(
+        "apiSecret",
+        entered
+      );
+
+      secret = entered;
+
+      showMessage("Authenticated");
+
+      break;
+
+    } else {
+
+      alert("Invalid access key");
+
+    }
+  }
+}
+
+async function validateSecret(secretToTest) {
+
+  try {
+
+    const response = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "validate",
+        secret: secretToTest
+      })
+    });
+
+    const data =
+      await response.json();
+
+    return data.success === true;
+
+  } catch {
+
+    return false;
+
+  }
+}
 
 async function submitName() {
 
@@ -31,13 +115,16 @@ async function submitName() {
   const response = await fetch(API_URL, {
     method: "POST",
     body: JSON.stringify({
-      secret: SECRET,
+      action: "addRecord",
+      secret: secret,
       name: name
     })
   });
 
-  document.getElementById("result").textContent =
-    JSON.stringify(await response.json(), null, 2);
+  const data =
+    await response.json();
+
+  showMessage(data);
 }
 
 async function loadRecords() {
@@ -48,8 +135,26 @@ async function loadRecords() {
   const data =
     await response.json();
 
-  document.getElementById("result").textContent =
-    JSON.stringify(data, null, 2);
+  showMessage(data);
+}
+
+function logout() {
+
+  localStorage.removeItem(
+    "apiSecret"
+  );
+
+  location.reload();
+}
+
+function showMessage(message) {
+
+  document.getElementById("result")
+    .textContent = JSON.stringify(
+      message,
+      null,
+      2
+    );
 }
 
 </script>
