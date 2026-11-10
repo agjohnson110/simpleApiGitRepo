@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sheet Test</title>
+</head>
+<body>
+
+<h1>Google Sheet Test</h1>
+
+<input id="name" placeholder="Enter name">
+<button onclick="submitName()">Save</button>
+
+<p id="result"></p>
+
+<script>
+
+const API_URL =
+  "https://script.google.com/macros/s/AKfycbwh9zJAkSCTSpUkoniyEb11ox9352YKHrpwnFvvfDuHAxaFsggyr6D8FSFOa5mJfKEq/exec";
+
+const SECRET =
+  "my-secret-key";
+
+async function submitName() {
+
+  const name =
+    document.getElementById("name").value;
+
+  const response = await fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      secret: SECRET,
+      name: name
+    })
+  });
+
+  const data = await response.json();
+
+  document.getElementById("result").textContent =
+    JSON.stringify(data);
+}
+
+</script>
+
+</body>
+</html>
